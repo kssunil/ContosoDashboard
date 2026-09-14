@@ -20,11 +20,11 @@ Open the URL printed by `dotnet run`, then sign in through `/login` using one of
 
 ## Scenario 1: Upload a personal document
 
-1. Sign in as the seeded employee.
-2. Open the document upload experience.
+1. Sign in as the seeded employee (`ni.kang@contoso.com`).
+2. Open `/documents/upload` or select **Upload Documents** from `/documents`.
 3. Select a supported PDF or image, enter a title, choose `Personal Files`, and submit.
 4. Confirm the progress indicator and success message appear.
-5. Confirm the document appears in the user's document list and recent-documents dashboard widget.
+5. Confirm the document appears in `/documents` and in the recent-documents dashboard widget on `/`.
 6. Confirm the physical file is outside `ContosoDashboard/wwwroot` and its stored name is GUID-based.
 
 Expected result: a Document record and file exist, and the current user can preview/download it.
@@ -39,10 +39,10 @@ Expected result: each request is rejected with a specific validation message, no
 
 ## Scenario 3: Project access and role behavior
 
-1. Sign in as the seeded project manager and upload a document for the seeded project.
+1. Sign in as the seeded project manager (`camille.nicole@contoso.com`) and upload a document from `/projects/1` or `/documents/upload?projectId=1`.
 2. Sign in as the seeded team lead and confirm the document is visible and downloadable.
 3. Sign in as the seeded employee who is a project member and confirm the same access.
-4. Attempt upload/delete as a regular project member and confirm the action is denied.
+4. Attempt a project upload as a user outside the project and confirm the upload is denied.
 5. Sign in as administrator and confirm administrative access.
 
 Expected result: project members can view/download by default; project managers can upload/delete project documents; unauthorized users cannot access the file endpoint by changing the document ID.

@@ -1,0 +1,26 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace ContosoDashboard.Models;
+
+public class DocumentShare
+{
+    [Key]
+    public int DocumentShareId { get; set; }
+
+    [Required]
+    public int DocumentId { get; set; }
+
+    public int? UserId { get; set; }
+    public int SharedByUserId { get; set; }
+    public DateTime SharedDate { get; set; } = DateTime.UtcNow;
+
+    [ForeignKey(nameof(DocumentId))]
+    public virtual Document Document { get; set; } = null!;
+
+    [ForeignKey(nameof(UserId))]
+    public virtual User? User { get; set; }
+
+    [ForeignKey(nameof(SharedByUserId))]
+    public virtual User SharedByUser { get; set; } = null!;
+}

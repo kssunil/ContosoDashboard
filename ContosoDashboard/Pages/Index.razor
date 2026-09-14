@@ -31,6 +31,14 @@
             <div class="col-md-3 mb-3">
                 <div class="card summary-card">
                     <div class="card-body">
+                        <h5 class="card-title">My Documents</h5>
+                        <p class="card-text display-4 text-primary">@summary.DocumentCount</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card summary-card">
+                    <div class="card-body">
                         <h5 class="card-title">Due Today</h5>
                         <p class="card-text display-4 text-warning">@summary.TasksDueToday</p>
                     </div>
@@ -86,6 +94,9 @@
                 <a href="/projects" class="list-group-item list-group-item-action">
                     <i class="bi bi-folder"></i> View My Projects
                 </a>
+                <a href="/documents/upload" class="list-group-item list-group-item-action">
+                    <i class="bi bi-upload"></i> Upload Document
+                </a>
                 <a href="/notifications" class="list-group-item list-group-item-action">
                     <i class="bi bi-bell"></i> View Notifications
                 </a>
@@ -118,12 +129,38 @@
             }
         </div>
     </div>
+
+    <div class="row mt-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h3>Recent Documents</h3>
+                <a href="/documents" class="btn btn-outline-primary btn-sm">View All</a>
+            </div>
+            @if (recentDocuments.Any())
+            {
+                <div class="list-group">
+                    @foreach (var document in recentDocuments)
+                    {
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><strong>@document.Title</strong> <small class="text-muted">(@document.Category)</small></span>
+                            <small class="text-muted">@document.UploadedDate.ToString("MMM dd, yyyy")</small>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-muted">No documents uploaded yet.</p>
+            }
+        </div>
+    </div>
 </div>
 
 @code {
     private DashboardSummary? summary;
     private List<Announcement>? announcements;
     private List<Notification>? recentNotifications;
+    private List<Document> recentDocuments = new();
     private string userName = "User";
     private int currentUserId = 0;
 
@@ -146,6 +183,7 @@
             summary = await DashboardService.GetDashboardSummaryAsync(currentUserId);
             announcements = await DashboardService.GetActiveAnnouncementsAsync();
             recentNotifications = await NotificationService.GetUserNotificationsAsync(currentUserId);
+            recentDocuments = await DashboardService.GetRecentDocumentsAsync(currentUserId);
         }
     }
 

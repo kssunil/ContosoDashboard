@@ -1,0 +1,180 @@
+@page "/documents/upload"
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@attribute [Authorize]
+@inject IDocumentService DocumentService
+@inject IProjectService ProjectService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<PageTitle>Upload Document - ContosoDashboard</PageTitle>
+
+<div class="container-fluid document-upload-page">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Upload Documents</h1>
+            <p class="text-muted mb-0">Store work files in a personal or project workspace.</p>
+        </div>
+        <a href="/documents" class="btn btn-outline-secondary">Back to Documents</a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="document-title">Document title</label>
+                    <input id="document-title" class="form-control" @bind="title" maxlength="255" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="document-category">Category</label>
+                    <select id="document-category" class="form-select" @bind="category">
+                        @foreach (var option in categories)
+                        {
+                            <option value="@option">@option</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="document-project">Associated project</label>
+                    <select id="document-project" class="form-select" @bind="selectedProjectId">
+                        <option value="">Personal file</option>
+                        @foreach (var project in projects)
+                        {
+                            <option value="@project.ProjectId">@project.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="document-tags">Tags</label>
+                    <input id="document-tags" class="form-control" @bind="tagsText" placeholder="Comma-separated tags" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="document-description">Description</label>
+                    <textarea id="document-description" class="form-control" rows="3" @bind="description"></textarea>
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="document-files">Files</label>
+                    <InputFile id="document-files" OnChange="SelectFiles" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png" />
+                    <small class="form-text text-muted">PDF, Office, text, JPEG, and PNG files up to 25 MB each.</small>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <div class="alert alert-danger mt-3" role="alert">@errorMessage</div>
+            }
+            @if (!string.IsNullOrWhiteSpace(successMessage))
+            {
+                <div class="alert alert-success mt-3" role="alert">@successMessage</div>
+            }
+            @if (isUploading)
+            {
+                <div class="upload-progress mt-3" role="status">
+                    <div class="d-flex justify-content-between mb-1"><span>Uploading...</span><span>@progressPercent%</span></div>
+                    <div class="progress"><div class="progress-bar" style="width: @progressPercent%"></div></div>
+                </div>
+            }
+
+            <div class="mt-4">
+                <button class="btn btn-primary" @onclick="UploadFiles" disabled="@(isUploading || selectedFiles.Count == 0)">
+                    <i class="bi bi-upload"></i> Upload Selected Files
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int? ProjectId { get; set; }
+
+    [SupplyParameterFromQuery]
+    public int? TaskId { get; set; }
+
+    private readonly string[] categories =
+    [
+        DocumentCategories.ProjectDocuments,
+        DocumentCategories.TeamResources,
+        DocumentCategories.PersonalFiles,
+        DocumentCategories.Reports,
+        DocumentCategories.Presentations,
+        DocumentCategories.Other
+    ];
+    private readonly List<IBrowserFile> selectedFiles = new();
+    private List<Project> projects = new();
+    private string title = string.Empty;
+    private string category = DocumentCategories.Other;
+    private string? description;
+    private string tagsText = string.Empty;
+    private string? errorMessage;
+    private string? successMessage;
+    private bool isUploading;
+    private int progressPercent;
+    private int currentUserId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (int.TryParse(state.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId)) currentUserId = userId;
+        if (currentUserId > 0)
+        {
+            projects = await ProjectService.GetUserProjectsAsync(currentUserId);
+            if (ProjectId.HasValue) selectedProjectId = ProjectId.Value.ToString();
+        }
+    }
+
+    private string selectedProjectId = string.Empty;
+
+    private void SelectFiles(InputFileChangeEventArgs args)
+    {
+        selectedFiles.Clear();
+        selectedFiles.AddRange(args.GetMultipleFiles(20));
+        errorMessage = null;
+        successMessage = null;
+    }
+
+    private async Task UploadFiles()
+    {
+        if (currentUserId <= 0 || selectedFiles.Count == 0) return;
+        isUploading = true;
+        progressPercent = 0;
+        errorMessage = null;
+        successMessage = null;
+
+        var errors = new List<string>();
+        var projectId = int.TryParse(selectedProjectId, out var parsedProjectId) ? parsedProjectId : (int?)null;
+        var tags = tagsText.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        for (var index = 0; index < selectedFiles.Count; index++)
+        {
+            var file = selectedFiles[index];
+            await using var stream = file.OpenReadStream(25 * 1024 * 1024);
+            var result = await DocumentService.UploadAsync(new DocumentUploadRequest
+            {
+                Content = stream,
+                FileName = file.Name,
+                ContentType = file.ContentType,
+                Length = file.Size,
+                Title = string.IsNullOrWhiteSpace(title) ? Path.GetFileNameWithoutExtension(file.Name) : title,
+                Description = description,
+                Category = category,
+                ProjectId = projectId,
+                TaskId = TaskId,
+                Tags = tags
+            }, currentUserId);
+            if (!result.Succeeded) errors.AddRange(result.Errors.Select(error => $"{file.Name}: {error}"));
+            progressPercent = (index + 1) * 100 / selectedFiles.Count;
+        }
+
+        isUploading = false;
+        if (errors.Count > 0) errorMessage = string.Join(" ", errors);
+        else
+        {
+            successMessage = $"Uploaded {selectedFiles.Count} document(s) successfully.";
+            selectedFiles.Clear();
+            title = string.Empty;
+            description = null;
+            tagsText = string.Empty;
+        }
+    }
+}

@@ -8,10 +8,10 @@
 
 **Purpose**: Establish the test project, feature directories, and local configuration boundaries required by the implementation.
 
-- [ ] T001 Create the `ContosoDashboard.Tests/ContosoDashboard.Tests.csproj` test project targeting `net9.0` with test SDK, xUnit, and the web project reference.
-- [ ] T002 [P] Create test directory structure under `ContosoDashboard.Tests/Services/`, `ContosoDashboard.Tests/Storage/`, and `ContosoDashboard.Tests/Authorization/`.
-- [ ] T003 [P] Add the local document storage root configuration key and training-only documentation to `ContosoDashboard/appsettings.json`.
-- [ ] T004 [P] Add the document management navigation entry and placeholder route link in `ContosoDashboard/Shared/NavMenu.razor`.
+- [x] T001 Create the `ContosoDashboard.Tests/ContosoDashboard.Tests.csproj` test project targeting `net9.0` with test SDK, xUnit, and the web project reference.
+- [x] T002 [P] Create test directory structure under `ContosoDashboard.Tests/Services/`, `ContosoDashboard.Tests/Storage/`, and `ContosoDashboard.Tests/Authorization/`.
+- [x] T003 [P] Add the local document storage root configuration key and training-only documentation to `ContosoDashboard/appsettings.json`.
+- [x] T004 [P] Add the document management navigation entry and placeholder route link in `ContosoDashboard/Shared/NavMenu.razor`.
 
 ---
 
@@ -21,20 +21,20 @@
 
 **Critical**: User story work depends on this phase.
 
-- [ ] T005 [P] Create integer-keyed `Document` entity with required title/category, optional project/task associations, generated relative path, original filename, file size, MIME type, uploader, timestamps, and deletion state in `ContosoDashboard/Models/Document.cs`.
-- [ ] T006 [P] Create normalized custom tag entity in `ContosoDashboard/Models/DocumentTag.cs`.
-- [ ] T007 [P] Create explicit user/team sharing entity in `ContosoDashboard/Models/DocumentShare.cs`.
-- [ ] T008 [P] Create document replacement history entity in `ContosoDashboard/Models/DocumentVersion.cs`.
-- [ ] T009 [P] Create document audit event entity and action values in `ContosoDashboard/Models/DocumentActivity.cs`.
-- [ ] T010 Add document, tag, share, version, and activity DbSets, relationships, text category constraints, foreign-key delete behaviors, uniqueness rules, and indexes for uploader/project/category/upload date/search access in `ContosoDashboard/Data/ApplicationDbContext.cs`.
-- [ ] T011 Extend document navigation collections and relationships on `ContosoDashboard/Models/User.cs`, `ContosoDashboard/Models/Project.cs`, and `ContosoDashboard/Models/TaskItem.cs`.
-- [ ] T012 [P] Define `IFileStorageService` and storage result contracts for upload, delete, download, and URL/content metadata in `ContosoDashboard/Services/FileStorageService.cs`.
-- [ ] T013 [P] Define `IFileSafetyScanner` and the training-local scan result contract in `ContosoDashboard/Services/FileSafetyScanner.cs`.
-- [ ] T014 Implement `LocalFileStorageService` with configured storage-root validation, GUID-based relative paths, path traversal protection, directory creation, stream copy, download, and delete behavior in `ContosoDashboard/Services/FileStorageService.cs`.
-- [ ] T015 Implement allowed-extension, MIME, 25 MB size, title/category, and local safety validation in `ContosoDashboard/Services/FileSafetyScanner.cs`.
-- [ ] T016 Register storage, scanner, document, sharing, and activity services in `ContosoDashboard/Program.cs` without adding cloud dependencies.
-- [ ] T017 Create storage safety and upload validation tests covering path traversal rejection, GUID paths, supported types, unsupported types, 25 MB boundaries, and invalid metadata in `ContosoDashboard.Tests/Storage/FileStorageServiceTests.cs`.
-- [ ] T018 Create data-model and authorization fixture helpers using temporary filesystem storage and seeded user/project roles in `ContosoDashboard.Tests/Authorization/DocumentAuthorizationFixture.cs`.
+- [x] T005 [P] Create integer-keyed `Document` entity with required title/category, optional project/task associations, generated relative path, original filename, file size, MIME type, uploader, timestamps, and deletion state in `ContosoDashboard/Models/Document.cs`.
+- [x] T006 [P] Create normalized custom tag entity in `ContosoDashboard/Models/DocumentTag.cs`.
+- [x] T007 [P] Create explicit user/team sharing entity in `ContosoDashboard/Models/DocumentShare.cs`.
+- [x] T008 [P] Create document replacement history entity in `ContosoDashboard/Models/DocumentVersion.cs`.
+- [x] T009 [P] Create document audit event entity and action values in `ContosoDashboard/Models/DocumentActivity.cs`.
+- [x] T010 Add document, tag, share, version, and activity DbSets, relationships, text category constraints, foreign-key delete behaviors, uniqueness rules, and indexes for uploader/project/category/upload date/search access in `ContosoDashboard/Data/ApplicationDbContext.cs`.
+- [x] T011 Extend document navigation collections and relationships on `ContosoDashboard/Models/User.cs`, `ContosoDashboard/Models/Project.cs`, and `ContosoDashboard/Models/TaskItem.cs`.
+- [x] T012 [P] Define `IFileStorageService` and storage result contracts for upload, delete, download, and URL/content metadata in `ContosoDashboard/Services/FileStorageService.cs`.
+- [x] T013 [P] Define `IFileSafetyScanner` and the training-local scan result contract in `ContosoDashboard/Services/FileSafetyScanner.cs`.
+- [x] T014 Implement `LocalFileStorageService` with configured storage-root validation, GUID-based relative paths, path traversal protection, directory creation, stream copy, download, and delete behavior in `ContosoDashboard/Services/FileStorageService.cs`.
+- [x] T015 Implement allowed-extension, MIME, 25 MB size, title/category, and local safety validation in `ContosoDashboard/Services/FileSafetyScanner.cs`.
+- [x] T016 Register storage, scanner, document, sharing, and activity services in `ContosoDashboard/Program.cs` without adding cloud dependencies.
+- [x] T017 Create storage safety and upload validation tests covering path traversal rejection, GUID paths, supported types, unsupported types, 25 MB boundaries, and invalid metadata in `ContosoDashboard.Tests/Storage/FileStorageServiceTests.cs`.
+- [x] T018 Create data-model and authorization fixture helpers using temporary filesystem storage and seeded user/project roles in `ContosoDashboard.Tests/Authorization/DocumentAuthorizationFixture.cs`.
 
 **Checkpoint**: The database model, local storage boundary, file validation, dependency injection, and reusable authorization test setup are ready for story implementation.
 
@@ -48,21 +48,21 @@
 
 ### Tests for User Story 1
 
-- [ ] T019 [P] [US1] Add upload workflow tests for validation, generated path before persistence, save-file-before-database ordering, successful metadata creation, and cleanup after database failure in `ContosoDashboard.Tests/Services/DocumentServiceUploadTests.cs`.
-- [ ] T020 [P] [US1] Add role and project-membership tests for personal uploads, project uploads, project-manager upload permission, non-member rejection, and uploader identity sourced from the request context in `ContosoDashboard.Tests/Authorization/DocumentUploadAuthorizationTests.cs`.
+- [x] T019 [P] [US1] Add upload workflow tests for validation, generated path before persistence, save-file-before-database ordering, successful metadata creation, and cleanup after database failure in `ContosoDashboard.Tests/Services/DocumentServiceUploadTests.cs`.
+- [x] T020 [P] [US1] Add role and project-membership tests for personal uploads, project uploads, project-manager upload permission, non-member rejection, and uploader identity sourced from the request context in `ContosoDashboard.Tests/Authorization/DocumentUploadAuthorizationTests.cs`.
 
 ### Implementation for User Story 1
 
-- [ ] T021 [US1] Define upload request, metadata, validation error, and document result contracts in `ContosoDashboard/Services/DocumentService.cs`.
-- [ ] T022 [US1] Implement `IDocumentService.UploadAsync` to authorize the user, validate the project/task context, generate a unique relative path, save the file, persist metadata, and remove the file if persistence fails in `ContosoDashboard/Services/DocumentService.cs`.
-- [ ] T023 [US1] Implement upload activity creation and project-member notification dispatch for successful project uploads in `ContosoDashboard/Services/DocumentService.cs` and `ContosoDashboard/Services/DocumentActivityService.cs`.
-- [ ] T024 [US1] Add document-related notification enum values and preserve existing notification behavior in `ContosoDashboard/Models/Notification.cs` and `ContosoDashboard/Services/NotificationService.cs`.
-- [ ] T025 [US1] Create the upload page with multi-file selection, required title/category/project fields, optional description/tags, progress state, success state, and clear validation errors in `ContosoDashboard/Pages/DocumentUpload.razor`.
-- [ ] T026 [US1] Add document list and project document sections showing title, category, upload date, size, MIME type, uploader, and project association in `ContosoDashboard/Pages/Documents.razor` and `ContosoDashboard/Pages/ProjectDetails.razor`.
-- [ ] T027 [US1] Add document upload controls and project context propagation to the task workflow in `ContosoDashboard/Pages/Tasks.razor`.
-- [ ] T028 [US1] Add document summary count and current-user recent five-document widget to `ContosoDashboard/Services/DashboardService.cs` and `ContosoDashboard/Pages/Index.razor`.
-- [ ] T029 [US1] Add focused upload and project-document styles for progress, validation, empty, success, and error states in `ContosoDashboard/wwwroot/css/site.css`.
-- [ ] T030 [US1] Register and validate the seeded employee, team lead, project manager, and administrator upload scenarios in `specs/001-document-upload-management/quickstart.md`.
+- [x] T021 [US1] Define upload request, metadata, validation error, and document result contracts in `ContosoDashboard/Services/DocumentService.cs`.
+- [x] T022 [US1] Implement `IDocumentService.UploadAsync` to authorize the user, validate the project/task context, generate a unique relative path, save the file, persist metadata, and remove the file if persistence fails in `ContosoDashboard/Services/DocumentService.cs`.
+- [x] T023 [US1] Implement upload activity creation and project-member notification dispatch for successful project uploads in `ContosoDashboard/Services/DocumentService.cs` and `ContosoDashboard/Services/DocumentActivityService.cs`.
+- [x] T024 [US1] Add document-related notification enum values and preserve existing notification behavior in `ContosoDashboard/Models/Notification.cs` and `ContosoDashboard/Services/NotificationService.cs`.
+- [x] T025 [US1] Create the upload page with multi-file selection, required title/category/project fields, optional description/tags, progress state, success state, and clear validation errors in `ContosoDashboard/Pages/DocumentUpload.razor`.
+- [x] T026 [US1] Add document list and project document sections showing title, category, upload date, size, MIME type, uploader, and project association in `ContosoDashboard/Pages/Documents.razor` and `ContosoDashboard/Pages/ProjectDetails.razor`.
+- [x] T027 [US1] Add document upload controls and project context propagation to the task workflow in `ContosoDashboard/Pages/Tasks.razor`.
+- [x] T028 [US1] Add document summary count and current-user recent five-document widget to `ContosoDashboard/Services/DashboardService.cs` and `ContosoDashboard/Pages/Index.razor`.
+- [x] T029 [US1] Add focused upload and project-document styles for progress, validation, empty, success, and error states in `ContosoDashboard/wwwroot/css/site.css`.
+- [x] T030 [US1] Register and validate the seeded employee, team lead, project manager, and administrator upload scenarios in `specs/001-document-upload-management/quickstart.md`.
 
 **Checkpoint**: User Story 1 is independently demoable: upload, validation, secure storage, metadata, project visibility, dashboard summary, and task/project entry points work together.
 

@@ -72,6 +72,24 @@ main {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+.document-upload-page .card,
+.documents-page .table {
+    border-top: 3px solid #0078d4;
+}
+
+.document-upload-page .form-label {
+    font-weight: 600;
+}
+
+.upload-progress .progress {
+    height: 0.75rem;
+}
+
+.documents-page .table td,
+.documents-page .table th {
+    vertical-align: middle;
+}
+
 @media (min-width: 641px) {
     .page {
         flex-direction: row;

@@ -126,6 +126,12 @@
                                 <button class="btn btn-sm btn-outline-primary" @onclick="() => ViewTaskDetails(task.TaskId)">
                                     <i class="bi bi-eye"></i>
                                 </button>
+                                @if (task.ProjectId.HasValue)
+                                {
+                                    <a class="btn btn-sm btn-outline-secondary ms-1" href="/documents/upload?projectId=@task.ProjectId&amp;taskId=@task.TaskId" title="Upload related document">
+                                        <i class="bi bi-paperclip"></i>
+                                    </a>
+                                }
                             </td>
                         </tr>
                     }

@@ -17,6 +17,11 @@ public class ApplicationDbContext : DbContext
     public DbSet<Notification> Notifications { get; set; } = null!;
     public DbSet<ProjectMember> ProjectMembers { get; set; } = null!;
     public DbSet<Announcement> Announcements { get; set; } = null!;
+    public DbSet<Document> Documents { get; set; } = null!;
+    public DbSet<DocumentTag> DocumentTags { get; set; } = null!;
+    public DbSet<DocumentShare> DocumentShares { get; set; } = null!;
+    public DbSet<DocumentVersion> DocumentVersions { get; set; } = null!;
+    public DbSet<DocumentActivity> DocumentActivities { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -63,6 +68,67 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Email)
             .IsUnique();
+
+        modelBuilder.Entity<Document>()
+            .HasOne(d => d.Uploader)
+            .WithMany(u => u.UploadedDocuments)
+            .HasForeignKey(d => d.UploaderId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Document>()
+            .HasOne(d => d.Project)
+            .WithMany(p => p.Documents)
+            .HasForeignKey(d => d.ProjectId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Document>()
+            .HasOne(d => d.Task)
+            .WithMany(t => t.Documents)
+            .HasForeignKey(d => d.TaskId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<DocumentShare>()
+            .HasOne(s => s.User)
+            .WithMany(u => u.DocumentShares)
+            .HasForeignKey(s => s.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<DocumentShare>()
+            .HasOne(s => s.SharedByUser)
+            .WithMany(u => u.DocumentSharesCreated)
+            .HasForeignKey(s => s.SharedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<DocumentVersion>()
+            .HasOne(v => v.UploadedByUser)
+            .WithMany(u => u.DocumentVersions)
+            .HasForeignKey(v => v.UploadedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<DocumentActivity>()
+            .HasOne(a => a.ActorUser)
+            .WithMany(u => u.DocumentActivities)
+            .HasForeignKey(a => a.ActorUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<DocumentTag>()
+            .HasIndex(t => new { t.DocumentId, t.Tag })
+            .IsUnique();
+
+        modelBuilder.Entity<DocumentShare>()
+            .HasIndex(s => new { s.DocumentId, s.UserId })
+            .IsUnique();
+
+        modelBuilder.Entity<DocumentVersion>()
+            .HasIndex(v => new { v.DocumentId, v.VersionNumber })
+            .IsUnique();
+
+        modelBuilder.Entity<Document>()
+            .HasIndex(d => new { d.UploaderId, d.UploadedDate });
+        modelBuilder.Entity<Document>()
+            .HasIndex(d => new { d.ProjectId, d.UploadedDate });
+        modelBuilder.Entity<Document>()
+            .HasIndex(d => d.Category);
 
         // Seed initial data
         SeedData(modelBuilder);
