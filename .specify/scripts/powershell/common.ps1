@@ -93,24 +93,95 @@ function Get-FeatureDir {
 }
 
 function Get-FeaturePathsEnv {
-    $repoRoot = Get-RepoRoot
-    $currentBranch = Get-CurrentBranch
-    $hasGit = Test-HasGit
-    $featureDir = Get-FeatureDir -RepoRoot $repoRoot -Branch $currentBranch
-    
-    [PSCustomObject]@{
-        REPO_ROOT     = $repoRoot
-        CURRENT_BRANCH = $currentBranch
-        HAS_GIT       = $hasGit
-        FEATURE_DIR   = $featureDir
-        FEATURE_SPEC  = Join-Path $featureDir 'spec.md'
-        IMPL_PLAN     = Join-Path $featureDir 'plan.md'
-        TASKS         = Join-Path $featureDir 'tasks.md'
-        RESEARCH      = Join-Path $featureDir 'research.md'
-        DATA_MODEL    = Join-Path $featureDir 'data-model.md'
-        QUICKSTART    = Join-Path $featureDir 'quickstart.md'
-        CONTRACTS_DIR = Join-Path $featureDir 'contracts'
+    param(
+        [switch]$ReturnNullOnError
+    )
+
+    try {
+        $repoRoot = Get-RepoRoot
+        $currentBranch = Get-CurrentBranch
+        $hasGit = Test-HasGit
+        $featureDir = Get-FeatureDir -RepoRoot $repoRoot -Branch $currentBranch
+
+        [PSCustomObject]@{
+            REPO_ROOT     = $repoRoot
+            CURRENT_BRANCH = $currentBranch
+            HAS_GIT       = $hasGit
+            FEATURE_DIR   = $featureDir
+            FEATURE_SPEC  = Join-Path $featureDir 'spec.md'
+            IMPL_PLAN     = Join-Path $featureDir 'plan.md'
+            TASKS         = Join-Path $featureDir 'tasks.md'
+            RESEARCH      = Join-Path $featureDir 'research.md'
+            DATA_MODEL    = Join-Path $featureDir 'data-model.md'
+            QUICKSTART    = Join-Path $featureDir 'quickstart.md'
+            CONTRACTS_DIR = Join-Path $featureDir 'contracts'
+        }
     }
+    catch {
+        if ($ReturnNullOnError) {
+            return $null
+        }
+        throw
+    }
+}
+
+function Resolve-Template {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$TemplateName,
+
+        [string]$RepoRoot
+    )
+
+    if (-not $RepoRoot) {
+        $RepoRoot = Get-RepoRoot
+    }
+
+    $normalizedName = $TemplateName.Trim()
+    if (-not $normalizedName) {
+        return $null
+    }
+
+    $searchRoots = @(
+        (Join-Path $RepoRoot '.specify/templates/overrides'),
+        (Join-Path $RepoRoot '.specify/templates'),
+        (Join-Path $RepoRoot '.specify/templates/presets')
+    )
+
+    foreach ($root in $searchRoots | Where-Object { $_ }) {
+        if (-not (Test-Path -LiteralPath $root -PathType Container)) {
+            continue
+        }
+
+        $candidates = @(
+            (Join-Path $root "$normalizedName.md"),
+            (Join-Path $root $normalizedName)
+        )
+
+        foreach ($candidate in $candidates) {
+            if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+                return (Resolve-Path -LiteralPath $candidate).Path
+            }
+        }
+    }
+
+    return $null
+}
+
+function Resolve-TemplateContent {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$TemplateName,
+
+        [string]$RepoRoot
+    )
+
+    $resolvedPath = Resolve-Template -TemplateName $TemplateName -RepoRoot $RepoRoot
+    if (-not $resolvedPath) {
+        return $null
+    }
+
+    return (Get-Content -LiteralPath $resolvedPath -Raw)
 }
 
 function Test-FileExists {
