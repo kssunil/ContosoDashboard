@@ -34,7 +34,12 @@ public sealed class DocumentActivityService : IDocumentActivityService
     public async Task<List<DocumentActivity>> GetAsync(int documentId, int requestingUserId, CancellationToken cancellationToken = default)
     {
         var document = await _context.Documents.AsNoTracking().FirstOrDefaultAsync(d => d.DocumentId == documentId, cancellationToken);
-        if (document == null || document.UploaderId != requestingUserId) return new List<DocumentActivity>();
+        if (document == null) return new List<DocumentActivity>();
+
+        var isOwner = document.UploaderId == requestingUserId;
+        var isAdministrator = await _context.Users.AsNoTracking().AnyAsync(u => u.UserId == requestingUserId && u.Role == UserRole.Administrator, cancellationToken);
+        if (!isOwner && !isAdministrator) return new List<DocumentActivity>();
+
         return await _context.DocumentActivities.AsNoTracking()
             .Include(a => a.ActorUser)
             .Where(a => a.DocumentId == documentId)

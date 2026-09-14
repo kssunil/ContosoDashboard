@@ -29,9 +29,14 @@ public class Notification
 
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
+    public int? RelatedDocumentId { get; set; }
+
     // Navigation properties
     [ForeignKey("UserId")]
     public virtual User User { get; set; } = null!;
+
+    [ForeignKey("RelatedDocumentId")]
+    public virtual Document? RelatedDocument { get; set; }
 }
 
 public enum NotificationType

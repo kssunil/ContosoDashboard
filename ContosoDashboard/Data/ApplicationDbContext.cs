@@ -111,6 +111,12 @@ public class ApplicationDbContext : DbContext
             .HasForeignKey(a => a.ActorUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        modelBuilder.Entity<Notification>()
+            .HasOne(n => n.RelatedDocument)
+            .WithMany()
+            .HasForeignKey(n => n.RelatedDocumentId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         modelBuilder.Entity<DocumentTag>()
             .HasIndex(t => new { t.DocumentId, t.Tag })
             .IsUnique();

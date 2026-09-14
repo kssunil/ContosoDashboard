@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
 @inject IDocumentService DocumentService
+@inject IDocumentShareService DocumentShareService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Documents - ContosoDashboard</PageTitle>
@@ -11,54 +12,193 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1>Documents</h1>
-            <p class="text-muted mb-0">Your uploaded personal and project documents.</p>
+            <p class="text-muted mb-0">Search, browse, and access your documents.</p>
         </div>
         <a href="/documents/upload" class="btn btn-primary"><i class="bi bi-upload"></i> Upload Documents</a>
     </div>
 
-    @if (documents == null)
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link @(activeTab == "all" ? "active" : "")" href="#" @onclick:preventDefault @onclick='() => SwitchTab("all")'>All Documents</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(activeTab == "shared" ? "active" : "")" href="#" @onclick:preventDefault @onclick='() => SwitchTab("shared")'>Shared With Me</a>
+        </li>
+    </ul>
+
+    @if (activeTab == "all")
     {
-        <p><em>Loading...</em></p>
-    }
-    else if (!documents.Any())
-    {
-        <div class="alert alert-info">No documents are available yet.</div>
+        <div class="row g-2 mb-3 document-filters">
+            <div class="col-md-4">
+                <input class="form-control" placeholder="Search title, description, tag, uploader, project" @bind="searchText" @bind:event="oninput" />
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" @bind="categoryFilter">
+                    <option value="">All Categories</option>
+                    @foreach (var option in categories)
+                    {
+                        <option value="@option">@option</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" @bind="sortBy">
+                    <option value="@DocumentSortField.UploadedDate">Upload Date</option>
+                    <option value="@DocumentSortField.Title">Title</option>
+                    <option value="@DocumentSortField.Category">Category</option>
+                    <option value="@DocumentSortField.FileSize">File Size</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" @bind="sortDescendingText">
+                    <option value="true">Descending</option>
+                    <option value="false">Ascending</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-secondary w-100" @onclick="() => SearchAsync(1)">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </div>
+        </div>
+
+        @if (searchResult == null)
+        {
+            <p><em>Loading...</em></p>
+        }
+        else if (searchResult.Items.Count == 0)
+        {
+            <div class="alert alert-info">No documents match your search.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr><th>Title</th><th>Category</th><th>Project</th><th>Uploaded</th><th>Size</th><th>Uploaded By</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var document in searchResult.Items)
+                        {
+                            <tr>
+                                <td><strong>@document.Title</strong><br /><small class="text-muted">@document.OriginalFileName</small></td>
+                                <td><span class="badge bg-secondary">@document.Category</span></td>
+                                <td>@(document.Project?.Name ?? "Personal")</td>
+                                <td>@document.UploadedDate.ToString("MMM dd, yyyy")</td>
+                                <td>@FormatSize(document.FileSize)</td>
+                                <td>@document.Uploader.DisplayName</td>
+                                <td>
+                                    <a class="btn btn-sm btn-outline-primary" href="/documents/@document.DocumentId"><i class="bi bi-eye"></i> View</a>
+                                    <a class="btn btn-sm btn-outline-secondary" href="/documents/files/@document.DocumentId/download"><i class="bi bi-download"></i></a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <nav aria-label="Document results paging">
+                <ul class="pagination">
+                    <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => SearchAsync(currentPage - 1)">Previous</button>
+                    </li>
+                    <li class="page-item disabled"><span class="page-link">Page @currentPage of @TotalPages</span></li>
+                    <li class="page-item @(currentPage >= TotalPages ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => SearchAsync(currentPage + 1)">Next</button>
+                    </li>
+                </ul>
+            </nav>
+        }
     }
     else
     {
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead>
-                    <tr><th>Title</th><th>Category</th><th>Project</th><th>Uploaded</th><th>Size</th><th>Uploaded By</th></tr>
-                </thead>
-                <tbody>
-                    @foreach (var document in documents)
-                    {
-                        <tr>
-                            <td><strong>@document.Title</strong><br /><small class="text-muted">@document.OriginalFileName</small></td>
-                            <td><span class="badge bg-secondary">@document.Category</span></td>
-                            <td>@(document.Project?.Name ?? "Personal")</td>
-                            <td>@document.UploadedDate.ToString("MMM dd, yyyy")</td>
-                            <td>@FormatSize(document.FileSize)</td>
-                            <td>@document.Uploader.DisplayName</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+        @if (sharedDocuments == null)
+        {
+            <p><em>Loading...</em></p>
+        }
+        else if (sharedDocuments.Count == 0)
+        {
+            <div class="alert alert-info">No documents have been shared with you yet.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr><th>Title</th><th>Category</th><th>Project</th><th>Uploaded</th><th>Uploaded By</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var document in sharedDocuments)
+                        {
+                            <tr>
+                                <td><strong>@document.Title</strong></td>
+                                <td><span class="badge bg-secondary">@document.Category</span></td>
+                                <td>@(document.Project?.Name ?? "Personal")</td>
+                                <td>@document.UploadedDate.ToString("MMM dd, yyyy")</td>
+                                <td>@document.Uploader.DisplayName</td>
+                                <td>
+                                    <a class="btn btn-sm btn-outline-primary" href="/documents/@document.DocumentId"><i class="bi bi-eye"></i> View</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
     }
 </div>
 
 @code {
-    private List<Document>? documents;
+    private readonly string[] categories =
+    [
+        DocumentCategories.ProjectDocuments,
+        DocumentCategories.TeamResources,
+        DocumentCategories.PersonalFiles,
+        DocumentCategories.Reports,
+        DocumentCategories.Presentations,
+        DocumentCategories.Other
+    ];
+
+    private string activeTab = "all";
+    private int currentUserId;
+    private string searchText = string.Empty;
+    private string categoryFilter = string.Empty;
+    private DocumentSortField sortBy = DocumentSortField.UploadedDate;
+    private string sortDescendingText = "true";
+    private int currentPage = 1;
+    private const int PageSize = 10;
+    private DocumentSearchResult? searchResult;
+    private List<Document>? sharedDocuments;
+
+    private int TotalPages => searchResult == null || searchResult.TotalCount == 0 ? 1 : (int)Math.Ceiling(searchResult.TotalCount / (double)PageSize);
 
     protected override async Task OnInitializedAsync()
     {
         var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        if (int.TryParse(state.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
-            documents = await DocumentService.GetAccessibleDocumentsAsync(userId);
-        else
-            documents = new List<Document>();
+        if (int.TryParse(state.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId)) currentUserId = userId;
+        await SearchAsync(1);
+    }
+
+    private async Task SwitchTab(string tab)
+    {
+        activeTab = tab;
+        if (tab == "shared" && sharedDocuments == null)
+            sharedDocuments = await DocumentShareService.GetSharedWithMeAsync(currentUserId);
+    }
+
+    private async Task SearchAsync(int page)
+    {
+        if (currentUserId <= 0) return;
+        currentPage = Math.Max(1, page);
+        searchResult = await DocumentService.SearchAsync(new DocumentSearchRequest
+        {
+            SearchText = string.IsNullOrWhiteSpace(searchText) ? null : searchText,
+            Category = string.IsNullOrWhiteSpace(categoryFilter) ? null : categoryFilter,
+            SortBy = sortBy,
+            SortDescending = sortDescendingText == "true",
+            Page = currentPage,
+            PageSize = PageSize
+        }, currentUserId);
     }
 
     private static string FormatSize(long bytes)
@@ -71,3 +211,4 @@
         };
     }
 }
+

@@ -142,27 +142,43 @@
         errorMessage = null;
         successMessage = null;
 
+        const long maxFileSize = 25 * 1024 * 1024;
         var errors = new List<string>();
         var projectId = int.TryParse(selectedProjectId, out var parsedProjectId) ? parsedProjectId : (int?)null;
         var tags = tagsText.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         for (var index = 0; index < selectedFiles.Count; index++)
         {
             var file = selectedFiles[index];
-            await using var stream = file.OpenReadStream(25 * 1024 * 1024);
-            var result = await DocumentService.UploadAsync(new DocumentUploadRequest
+            if (file.Size > maxFileSize)
             {
-                Content = stream,
-                FileName = file.Name,
-                ContentType = file.ContentType,
-                Length = file.Size,
-                Title = string.IsNullOrWhiteSpace(title) ? Path.GetFileNameWithoutExtension(file.Name) : title,
-                Description = description,
-                Category = category,
-                ProjectId = projectId,
-                TaskId = TaskId,
-                Tags = tags
-            }, currentUserId);
-            if (!result.Succeeded) errors.AddRange(result.Errors.Select(error => $"{file.Name}: {error}"));
+                errors.Add($"{file.Name}: Each file must be no more than 25 MB.");
+                progressPercent = (index + 1) * 100 / selectedFiles.Count;
+                continue;
+            }
+
+            try
+            {
+                await using var stream = file.OpenReadStream(maxFileSize);
+                var result = await DocumentService.UploadAsync(new DocumentUploadRequest
+                {
+                    Content = stream,
+                    FileName = file.Name,
+                    ContentType = file.ContentType,
+                    Length = file.Size,
+                    Title = string.IsNullOrWhiteSpace(title) ? Path.GetFileNameWithoutExtension(file.Name) : title,
+                    Description = description,
+                    Category = category,
+                    ProjectId = projectId,
+                    TaskId = TaskId,
+                    Tags = tags
+                }, currentUserId);
+                if (!result.Succeeded) errors.AddRange(result.Errors.Select(error => $"{file.Name}: {error}"));
+            }
+            catch (Exception)
+            {
+                // Guard against unexpected IO/browser file errors so a single bad file cannot crash the circuit.
+                errors.Add($"{file.Name}: This file could not be uploaded. Please verify the file type and size and try again.");
+            }
             progressPercent = (index + 1) * 100 / selectedFiles.Count;
         }
 

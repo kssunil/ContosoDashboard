@@ -32,6 +32,14 @@
             </NavLink>
         </div>
 
+        <AuthorizeView Roles="Administrator">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="documents/reports">
+                    <span class="bi bi-bar-chart" aria-hidden="true"></span> Document Reports
+                </NavLink>
+            </div>
+        </AuthorizeView>
+
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="team">
                 <span class="bi bi-people" aria-hidden="true"></span> Team

@@ -1,0 +1,340 @@
+@page "/documents/{Id:int}"
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@attribute [Authorize]
+@inject IDocumentService DocumentService
+@inject IDocumentShareService DocumentShareService
+@inject IDocumentActivityService DocumentActivityService
+@inject IUserService UserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<PageTitle>Document Details - ContosoDashboard</PageTitle>
+
+<div class="container-fluid document-details-page">
+    <a href="/documents" class="btn btn-outline-secondary mb-3">Back to Documents</a>
+
+    @if (loading)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else if (document == null)
+    {
+        <div class="alert alert-warning">This document was not found or you do not have access to it.</div>
+    }
+    else
+    {
+        <div class="row g-4">
+            <div class="col-md-7">
+                <div class="card mb-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">@document.Title</h5>
+                        <span class="badge bg-secondary">@document.Category</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">@document.Description</p>
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4">Project</dt><dd class="col-sm-8">@(document.Project?.Name ?? "Personal")</dd>
+                            <dt class="col-sm-4">Uploaded By</dt><dd class="col-sm-8">@document.Uploader.DisplayName</dd>
+                            <dt class="col-sm-4">Uploaded</dt><dd class="col-sm-8">@document.UploadedDate.ToString("MMM dd, yyyy")</dd>
+                            <dt class="col-sm-4">Updated</dt><dd class="col-sm-8">@document.UpdatedDate.ToString("MMM dd, yyyy")</dd>
+                            <dt class="col-sm-4">File</dt><dd class="col-sm-8">@document.OriginalFileName (@FormatSize(document.FileSize))</dd>
+                            <dt class="col-sm-4">Tags</dt>
+                            <dd class="col-sm-8">
+                                @foreach (var tag in document.Tags)
+                                {
+                                    <span class="badge bg-light text-dark border me-1">@tag.Tag</span>
+                                }
+                            </dd>
+                        </dl>
+                        <div class="mt-3">
+                            <a class="btn btn-primary btn-sm" href="/documents/files/@document.DocumentId/download"><i class="bi bi-download"></i> Download</a>
+                            <a class="btn btn-outline-secondary btn-sm" href="/documents/files/@document.DocumentId/preview" target="_blank"><i class="bi bi-eye"></i> Preview</a>
+                        </div>
+                    </div>
+                </div>
+
+                @if (IsPreviewable(document.MimeType))
+                {
+                    <div class="card mb-3 document-preview-card">
+                        <div class="card-body">
+                            @if (document.MimeType.StartsWith("image/"))
+                            {
+                                <img src="/documents/files/@document.DocumentId/preview" class="img-fluid" alt="@document.Title preview" />
+                            }
+                            else
+                            {
+                                <iframe src="/documents/files/@document.DocumentId/preview" class="w-100 document-preview-frame" title="@document.Title preview"></iframe>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (document.Versions.Any())
+                {
+                    <div class="card mb-3">
+                        <div class="card-header"><h6 class="mb-0">Version History</h6></div>
+                        <ul class="list-group list-group-flush">
+                            @foreach (var version in document.Versions.OrderByDescending(v => v.VersionNumber))
+                            {
+                                <li class="list-group-item">
+                                    v@(version.VersionNumber) - @version.OriginalFileName (@FormatSize(version.FileSize)) - @version.UploadedDate.ToString("MMM dd, yyyy")
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+
+            <div class="col-md-5">
+                @if (canManage)
+                {
+                    <div class="card mb-3">
+                        <div class="card-header"><h6 class="mb-0">Edit Metadata</h6></div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <label class="form-label">Title</label>
+                                <input class="form-control" @bind="editTitle" maxlength="255" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Category</label>
+                                <select class="form-select" @bind="editCategory">
+                                    @foreach (var option in categories)
+                                    {
+                                        <option value="@option">@option</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" rows="2" @bind="editDescription"></textarea>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Tags</label>
+                                <input class="form-control" @bind="editTagsText" placeholder="Comma-separated tags" />
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(metadataMessage))
+                            {
+                                <div class="alert @(metadataSuccess ? "alert-success" : "alert-danger") py-1">@metadataMessage</div>
+                            }
+                            <button class="btn btn-primary btn-sm" @onclick="SaveMetadataAsync">Save Changes</button>
+                        </div>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-header"><h6 class="mb-0">Replace File</h6></div>
+                        <div class="card-body">
+                            <InputFile OnChange="SelectReplacementFile" />
+                            @if (!string.IsNullOrWhiteSpace(replaceMessage))
+                            {
+                                <div class="alert @(replaceSuccess ? "alert-success" : "alert-danger") py-1 mt-2">@replaceMessage</div>
+                            }
+                            <button class="btn btn-outline-primary btn-sm mt-2" @onclick="ReplaceFileAsync" disabled="@(replacementFile == null)">Upload Replacement</button>
+                        </div>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-header"><h6 class="mb-0">Share Document</h6></div>
+                        <div class="card-body">
+                            <div class="input-group mb-2">
+                                <select class="form-select" @bind="shareRecipientId">
+                                    <option value="">Select user</option>
+                                    @foreach (var candidate in shareCandidates)
+                                    {
+                                        <option value="@candidate.UserId">@candidate.DisplayName</option>
+                                    }
+                                </select>
+                                <button class="btn btn-outline-primary" @onclick="ShareAsync">Share</button>
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(shareMessage))
+                            {
+                                <div class="alert @(shareSuccess ? "alert-success" : "alert-danger") py-1">@shareMessage</div>
+                            }
+                            @if (shares.Any())
+                            {
+                                <ul class="list-group">
+                                    @foreach (var share in shares)
+                                    {
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            @share.User?.DisplayName
+                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => RevokeShareAsync(share.DocumentShareId)">Revoke</button>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="card mb-3 border-danger">
+                        <div class="card-header text-danger"><h6 class="mb-0">Delete Document</h6></div>
+                        <div class="card-body">
+                            <div class="form-check mb-2">
+                                <input type="checkbox" class="form-check-input" id="confirm-delete" @bind="deleteConfirmed" />
+                                <label class="form-check-label" for="confirm-delete">I understand this permanently removes the file.</label>
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(deleteMessage))
+                            {
+                                <div class="alert alert-danger py-1">@deleteMessage</div>
+                            }
+                            <button class="btn btn-danger btn-sm" disabled="@(!deleteConfirmed)" @onclick="DeleteAsync">Delete Document</button>
+                        </div>
+                    </div>
+                }
+
+                @if (activities.Any())
+                {
+                    <div class="card">
+                        <div class="card-header"><h6 class="mb-0">Activity</h6></div>
+                        <ul class="list-group list-group-flush">
+                            @foreach (var activity in activities)
+                            {
+                                <li class="list-group-item small">
+                                    <strong>@activity.Action</strong> by @activity.ActorUser.DisplayName - @activity.OccurredDate.ToString("MMM dd, yyyy HH:mm")
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private readonly string[] categories =
+    [
+        DocumentCategories.ProjectDocuments,
+        DocumentCategories.TeamResources,
+        DocumentCategories.PersonalFiles,
+        DocumentCategories.Reports,
+        DocumentCategories.Presentations,
+        DocumentCategories.Other
+    ];
+
+    private bool loading = true;
+    private int currentUserId;
+    private Document? document;
+    private bool canManage;
+    private List<DocumentShare> shares = new();
+    private List<DocumentActivity> activities = new();
+    private List<User> shareCandidates = new();
+
+    private string editTitle = string.Empty;
+    private string editCategory = DocumentCategories.Other;
+    private string? editDescription;
+    private string editTagsText = string.Empty;
+    private string? metadataMessage;
+    private bool metadataSuccess;
+
+    private IBrowserFile? replacementFile;
+    private string? replaceMessage;
+    private bool replaceSuccess;
+
+    private string shareRecipientId = string.Empty;
+    private string? shareMessage;
+    private bool shareSuccess;
+
+    private bool deleteConfirmed;
+    private string? deleteMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (int.TryParse(state.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId)) currentUserId = userId;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        loading = true;
+        document = await DocumentService.GetDocumentForAccessAsync(Id, currentUserId);
+        if (document != null)
+        {
+            canManage = document.UploaderId == currentUserId || (await UserService.GetUserByIdAsync(currentUserId))?.Role == UserRole.Administrator;
+            editTitle = document.Title;
+            editCategory = document.Category;
+            editDescription = document.Description;
+            editTagsText = string.Join(", ", document.Tags.Select(t => t.Tag));
+            activities = await DocumentActivityService.GetAsync(Id, currentUserId);
+
+            if (canManage)
+            {
+                shares = await DocumentShareService.GetSharesAsync(Id, currentUserId);
+                var allUsers = await UserService.GetAllUsersAsync();
+                shareCandidates = allUsers.Where(u => u.UserId != document.UploaderId && shares.All(s => s.UserId != u.UserId)).ToList();
+            }
+        }
+        loading = false;
+    }
+
+    private async Task SaveMetadataAsync()
+    {
+        var tags = editTagsText.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var result = await DocumentService.EditMetadataAsync(Id, new DocumentMetadataUpdate(editTitle, editDescription, editCategory, tags), currentUserId);
+        metadataSuccess = result.Succeeded;
+        metadataMessage = result.Succeeded ? "Metadata updated." : string.Join(" ", result.Errors);
+        if (result.Succeeded) await LoadAsync();
+    }
+
+    private void SelectReplacementFile(InputFileChangeEventArgs args)
+    {
+        replacementFile = args.File;
+        replaceMessage = null;
+    }
+
+    private async Task ReplaceFileAsync()
+    {
+        if (replacementFile == null) return;
+        await using var stream = replacementFile.OpenReadStream(25 * 1024 * 1024);
+        var result = await DocumentService.ReplaceFileAsync(Id, stream, replacementFile.Name, replacementFile.ContentType, replacementFile.Size, currentUserId);
+        replaceSuccess = result.Succeeded;
+        replaceMessage = result.Succeeded ? "File replaced successfully." : string.Join(" ", result.Errors);
+        if (result.Succeeded)
+        {
+            replacementFile = null;
+            await LoadAsync();
+        }
+    }
+
+    private async Task ShareAsync()
+    {
+        if (!int.TryParse(shareRecipientId, out var recipientId)) return;
+        var result = await DocumentShareService.ShareAsync(Id, recipientId, currentUserId);
+        shareSuccess = result.Succeeded;
+        shareMessage = result.Succeeded ? "Document shared." : string.Join(" ", result.Errors);
+        if (result.Succeeded)
+        {
+            shareRecipientId = string.Empty;
+            await LoadAsync();
+        }
+    }
+
+    private async Task RevokeShareAsync(int documentShareId)
+    {
+        await DocumentShareService.RevokeAsync(documentShareId, currentUserId);
+        await LoadAsync();
+    }
+
+    private async Task DeleteAsync()
+    {
+        var result = await DocumentService.DeleteAsync(Id, currentUserId);
+        if (result.Succeeded) NavigationManager.NavigateTo("/documents");
+        else deleteMessage = string.Join(" ", result.Errors);
+    }
+
+    private static bool IsPreviewable(string mimeType) =>
+        mimeType.StartsWith("image/") || mimeType == "application/pdf";
+
+    private static string FormatSize(long bytes)
+    {
+        return bytes switch
+        {
+            >= 1024 * 1024 => $"{bytes / 1024d / 1024d:0.##} MB",
+            >= 1024 => $"{bytes / 1024d:0.##} KB",
+            _ => $"{bytes} B"
+        };
+    }
+}

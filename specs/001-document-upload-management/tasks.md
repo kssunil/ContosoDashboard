@@ -76,18 +76,18 @@
 
 ### Tests for User Story 2
 
-- [ ] T031 [P] [US2] Add search, sort, filter, pagination, and two-second target dataset tests in `ContosoDashboard.Tests/Services/DocumentSearchTests.cs`.
-- [ ] T032 [P] [US2] Add IDOR and file-access tests for unauthorized list, preview, download, and manipulated document identifiers in `ContosoDashboard.Tests/Authorization/DocumentFileAccessTests.cs`.
+- [x] T031 [P] [US2] Add search, sort, filter, pagination, and two-second target dataset tests in `ContosoDashboard.Tests/Services/DocumentSearchTests.cs`.
+- [x] T032 [P] [US2] Add IDOR and file-access tests for unauthorized list, preview, download, and manipulated document identifiers in `ContosoDashboard.Tests/Authorization/DocumentFileAccessTests.cs`.
 
 ### Implementation for User Story 2
 
-- [ ] T033 [US2] Implement permission-filtered document listing, title/description/tag/uploader/project search, category/project/date/file-size filters, and title/date/category/file-size sorting in `ContosoDashboard/Services/DocumentService.cs`.
-- [ ] T034 [US2] Implement authorized preview/download stream retrieval with safe content disposition, MIME handling, and download/preview activity logging in `ContosoDashboard/Controllers/DocumentFilesController.cs`.
-- [ ] T035 [US2] Register MVC controllers and protected document file routes in `ContosoDashboard/Program.cs` without exposing the storage directory through static files.
-- [ ] T036 [US2] Add search box, filters, sort controls, result paging, empty/error states, preview links, and download actions to `ContosoDashboard/Pages/Documents.razor`.
-- [ ] T037 [US2] Add document details and browser preview experience for PDF and image content in `ContosoDashboard/Pages/DocumentDetails.razor`.
-- [ ] T038 [US2] Add responsive table and preview/download styles in `ContosoDashboard/wwwroot/css/site.css`.
-- [ ] T039 [US2] Execute the search, permission, preview, download, and performance scenarios in `specs/001-document-upload-management/quickstart.md` and record any training-environment limitations.
+- [x] T033 [US2] Implement permission-filtered document listing, title/description/tag/uploader/project search, category/project/date/file-size filters, and title/date/category/file-size sorting in `ContosoDashboard/Services/DocumentService.cs`.
+- [x] T034 [US2] Implement authorized preview/download stream retrieval with safe content disposition, MIME handling, and download/preview activity logging in `ContosoDashboard/Controllers/DocumentFilesController.cs`.
+- [x] T035 [US2] Register MVC controllers and protected document file routes in `ContosoDashboard/Program.cs` without exposing the storage directory through static files.
+- [x] T036 [US2] Add search box, filters, sort controls, result paging, empty/error states, preview links, and download actions to `ContosoDashboard/Pages/Documents.razor`.
+- [x] T037 [US2] Add document details and browser preview experience for PDF and image content in `ContosoDashboard/Pages/DocumentDetails.razor`.
+- [x] T038 [US2] Add responsive table and preview/download styles in `ContosoDashboard/wwwroot/css/site.css`.
+- [x] T039 [US2] Execute the search, permission, preview, download, and performance scenarios in `specs/001-document-upload-management/quickstart.md` and record any training-environment limitations.
 
 **Checkpoint**: User Stories 1 and 2 are independently testable; users can upload, locate, preview, and download authorized documents without direct filesystem exposure.
 
@@ -101,21 +101,21 @@
 
 ### Tests for User Story 3
 
-- [ ] T040 [P] [US3] Add share/revoke, duplicate-share, recipient-access, non-member, and notification tests in `ContosoDashboard.Tests/Services/DocumentShareServiceTests.cs`.
-- [ ] T041 [P] [US3] Add metadata-edit, file-replacement/version, deletion, cleanup-failure, and activity-log tests in `ContosoDashboard.Tests/Services/DocumentLifecycleTests.cs`.
-- [ ] T042 [P] [US3] Add administrator audit/report authorization tests in `ContosoDashboard.Tests/Authorization/DocumentAuditAuthorizationTests.cs`.
+- [x] T040 [P] [US3] Add share/revoke, duplicate-share, recipient-access, non-member, and notification tests in `ContosoDashboard.Tests/Services/DocumentShareServiceTests.cs`.
+- [x] T041 [P] [US3] Add metadata-edit, file-replacement/version, deletion, cleanup-failure, and activity-log tests in `ContosoDashboard.Tests/Services/DocumentLifecycleTests.cs`.
+- [x] T042 [P] [US3] Add administrator audit/report authorization tests in `ContosoDashboard.Tests/Authorization/DocumentAuditAuthorizationTests.cs`.
 
 ### Implementation for User Story 3
 
-- [ ] T043 [US3] Implement metadata edit, file replacement, version creation, owner/project-manager authorization, and activity logging in `ContosoDashboard/Services/DocumentService.cs`.
-- [ ] T044 [US3] Implement explicit user/team share creation, duplicate prevention, revocation, recipient visibility, and share activity logging in `ContosoDashboard/Services/DocumentShareService.cs`.
-- [ ] T045 [US3] Add document-shared and project-document-added notification types and recipient notification creation in `ContosoDashboard/Models/Notification.cs` and `ContosoDashboard/Services/NotificationService.cs`.
-- [ ] T046 [US3] Implement authorized deletion with confirmation-ready result handling, permanent file removal, metadata state update, and delete activity logging in `ContosoDashboard/Services/DocumentService.cs`.
-- [ ] T047 [US3] Add document details controls for metadata editing, replacement upload, share/revoke, and confirmed deletion in `ContosoDashboard/Pages/DocumentDetails.razor`.
-- [ ] T048 [US3] Add shared-with-me view and recipient notification links in `ContosoDashboard/Pages/Documents.razor` and `ContosoDashboard/Pages/Notifications.razor`.
-- [ ] T049 [US3] Add administrator document activity, upload-type, active-uploader, and access-pattern reporting view in `ContosoDashboard/Pages/DocumentReports.razor`.
-- [ ] T050 [US3] Add sharing, version history, deletion confirmation, and audit-report styles in `ContosoDashboard/wwwroot/css/site.css`.
-- [ ] T051 [US3] Execute the share, notification, lifecycle, and audit scenarios in `specs/001-document-upload-management/quickstart.md` using seeded roles.
+- [x] T043 [US3] Implement metadata edit, file replacement, version creation, owner/project-manager authorization, and activity logging in `ContosoDashboard/Services/DocumentService.cs`.
+- [x] T044 [US3] Implement explicit user/team share creation, duplicate prevention, revocation, recipient visibility, and share activity logging in `ContosoDashboard/Services/DocumentShareService.cs`.
+- [x] T045 [US3] Add document-shared and project-document-added notification types and recipient notification creation in `ContosoDashboard/Models/Notification.cs` and `ContosoDashboard/Services/NotificationService.cs`.
+- [x] T046 [US3] Implement authorized deletion with confirmation-ready result handling, permanent file removal, metadata state update, and delete activity logging in `ContosoDashboard/Services/DocumentService.cs`.
+- [x] T047 [US3] Add document details controls for metadata editing, replacement upload, share/revoke, and confirmed deletion in `ContosoDashboard/Pages/DocumentDetails.razor`.
+- [x] T048 [US3] Add shared-with-me view and recipient notification links in `ContosoDashboard/Pages/Documents.razor` and `ContosoDashboard/Pages/Notifications.razor`.
+- [x] T049 [US3] Add administrator document activity, upload-type, active-uploader, and access-pattern reporting view in `ContosoDashboard/Pages/DocumentReports.razor`.
+- [x] T050 [US3] Add sharing, version history, deletion confirmation, and audit-report styles in `ContosoDashboard/wwwroot/css/site.css`.
+- [x] T051 [US3] Execute the share, notification, lifecycle, and audit scenarios in `specs/001-document-upload-management/quickstart.md` using seeded roles.
 
 **Checkpoint**: All three user stories are independently demonstrable with role-aware sharing, lifecycle management, notifications, and audit reporting.
 
@@ -125,13 +125,13 @@
 
 **Purpose**: Complete integration quality, documentation, security review, and end-to-end validation.
 
-- [ ] T052 [P] Add build/test project wiring to `ContosoDashboard.sln` or the repository workspace solution configuration so `dotnet test` discovers `ContosoDashboard.Tests/ContosoDashboard.Tests.csproj`.
-- [ ] T053 [P] Add user-facing training-scope and local-storage limitations to `README.md` and document the future cloud-storage replacement boundary.
-- [ ] T054 [P] Add structured logging for upload rejection, storage failure, unauthorized access, cleanup failure, and audit persistence in `ContosoDashboard/Services/DocumentService.cs` and `ContosoDashboard/Services/FileStorageService.cs`.
-- [ ] T055 Review every document list, search, preview, download, edit, replace, share, and delete path for service-level authorization and IDOR resistance in `ContosoDashboard/Services/DocumentService.cs`, `ContosoDashboard/Services/DocumentShareService.cs`, and `ContosoDashboard/Controllers/DocumentFilesController.cs`.
-- [ ] T056 Run `dotnet build` and `dotnet test` from `ContosoDashboard/` and record the results against `specs/001-document-upload-management/quickstart.md`.
+- [x] T052 [P] Add build/test project wiring to `ContosoDashboard.sln` or the repository workspace solution configuration so `dotnet test` discovers `ContosoDashboard.Tests/ContosoDashboard.Tests.csproj`.
+- [x] T053 [P] Add user-facing training-scope and local-storage limitations to `README.md` and document the future cloud-storage replacement boundary.
+- [x] T054 [P] Add structured logging for upload rejection, storage failure, unauthorized access, cleanup failure, and audit persistence in `ContosoDashboard/Services/DocumentService.cs` and `ContosoDashboard/Services/FileStorageService.cs`.
+- [x] T055 Review every document list, search, preview, download, edit, replace, share, and delete path for service-level authorization and IDOR resistance in `ContosoDashboard/Services/DocumentService.cs`, `ContosoDashboard/Services/DocumentShareService.cs`, and `ContosoDashboard/Controllers/DocumentFilesController.cs`.
+- [x] T056 Run `dotnet build` and `dotnet test` from `ContosoDashboard/` and record the results against `specs/001-document-upload-management/quickstart.md`.
 - [ ] T057 Run the complete manual quickstart, including upload progress, responsive UI, preview, project/task integration, notifications, deletion confirmation, and administrator reporting, and update `specs/001-document-upload-management/quickstart.md` with verified outcomes.
-- [ ] T058 Review and reconcile the .NET target documentation discrepancy between `ContosoDashboard/ContosoDashboard.csproj`, `.specify/memory/constitution.md`, and `README.md` in a separate documented maintenance change without changing the feature runtime target.
+- [x] T058 Review and reconcile the .NET target documentation discrepancy between `ContosoDashboard/ContosoDashboard.csproj`, `.specify/memory/constitution.md`, and `README.md` in a separate documented maintenance change without changing the feature runtime target.
 
 ---
 

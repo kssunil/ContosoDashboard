@@ -82,3 +82,18 @@ dotnet test
 ```
 
 The automated suite should cover validation, storage sequencing and cleanup, authorization, search filtering, notification creation, version replacement, deletion, and audit records. Browser-only progress and preview behavior remains a manual validation scenario unless a browser test harness is introduced later.
+
+## Verified outcomes (Incremental Delivery: US2 + US3)
+
+- `dotnet build` succeeds for `ContosoDashboard/ContosoDashboard.csproj` with the US2/US3 search, preview/download, sharing, replacement, deletion, and audit-report code in place.
+- `dotnet test` passes all 31 automated tests, including the new `DocumentSearchTests`, `DocumentFileAccessTests`, `DocumentShareServiceTests`, `DocumentLifecycleTests`, and `DocumentAuditAuthorizationTests` suites covering: permission-filtered search/sort/pagination, IDOR-resistant access to preview/download by document ID, share/revoke and duplicate-share prevention with notification creation, metadata edit and file-replacement version history, soft-deletion with physical file removal, and administrator-only audit report access.
+- **Training-environment limitation**: Scenarios 3-6 in this quickstart (project role browser behavior, search/task UI, share notification banners, and the administrator audit page) require a live browser session against a running LocalDB instance and have not been re-walked interactively as part of this change; the underlying service and authorization behavior they depend on is covered by the automated suite above. Re-run Scenarios 3-6 manually before considering US2/US3 fully sign-off ready in a live training environment.
+
+## Polish and cross-cutting verification (Phase 6)
+
+- Added `ContosoDashboard.sln` at the repository root referencing both `ContosoDashboard/ContosoDashboard.csproj` and `ContosoDashboard.Tests/ContosoDashboard.Tests.csproj`, so `dotnet test` (run from the repository root) discovers the test project without an explicit path.
+- Reviewed every document access path (`DocumentService`, `DocumentShareService`, `DocumentFilesController`) for service-level authorization: all list/search, preview/download, edit, replace, share/revoke, and delete operations re-check ownership, project membership, share records, or administrator role before returning data or mutating state, and IDOR attempts (guessed document IDs) are rejected by `GetDocumentForAccessAsync`/`CanAccessAsync` rather than by UI-only checks.
+- Added structured logging (`ILogger`) for upload rejections (failed safety validation), unauthorized access/edit/replace/delete/audit-report attempts, and local storage failures (save/delete errors and rejected path-traversal attempts), in addition to the existing cleanup-failure and persistence-failure logging.
+- `dotnet build` (0 errors, pre-existing nullable/Razor warnings unrelated to this feature) and `dotnet test` (31/31 passing) were re-run from the repository root against the new solution file.
+- **Training-environment limitation**: The full interactive manual walkthrough (upload progress bar, responsive layout, live preview rendering, notifications banner, and administrator report UI) was not re-executed in a browser as part of this polish pass; it should be re-run manually per Scenarios 1-6 above before final sign-off in a live environment.
+

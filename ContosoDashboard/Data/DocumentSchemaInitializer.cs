@@ -99,5 +99,13 @@ public static class DocumentSchemaInitializer
             "CONSTRAINT [FK_DocumentActivities_Users_ActorUserId] FOREIGN KEY ([ActorUserId]) REFERENCES [Users] ([UserId])" +
             "); " +
             "END");
+
+        context.Database.ExecuteSqlRaw(
+            "IF COL_LENGTH(N'Notifications', N'RelatedDocumentId') IS NULL " +
+            "BEGIN " +
+            "ALTER TABLE [Notifications] ADD [RelatedDocumentId] int NULL; " +
+            "ALTER TABLE [Notifications] ADD CONSTRAINT [FK_Notifications_Documents_RelatedDocumentId] " +
+            "FOREIGN KEY ([RelatedDocumentId]) REFERENCES [Documents] ([DocumentId]) ON DELETE SET NULL; " +
+            "END");
     }
 }

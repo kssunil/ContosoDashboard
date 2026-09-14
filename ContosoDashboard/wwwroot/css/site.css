@@ -90,6 +90,30 @@ main {
     vertical-align: middle;
 }
 
+.document-filters .form-control,
+.document-filters .form-select {
+    height: 38px;
+}
+
+.document-details-page .card-header h5,
+.document-details-page .card-header h6 {
+    margin: 0;
+}
+
+.document-preview-frame {
+    height: 480px;
+    border: 0;
+}
+
+.document-preview-card img {
+    max-height: 480px;
+    object-fit: contain;
+}
+
+.document-reports-page .summary-card h3 {
+    margin-bottom: 0;
+}
+
 @media (min-width: 641px) {
     .page {
         flex-direction: row;

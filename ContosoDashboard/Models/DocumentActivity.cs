@@ -33,4 +33,12 @@ public static class DocumentActivityActions
 {
     public const string Upload = "Upload";
     public const string ProjectDocumentAdded = "ProjectDocumentAdded";
+    public const string Download = "Download";
+    public const string Preview = "Preview";
+    public const string MetadataEdit = "MetadataEdit";
+    public const string Replacement = "Replacement";
+    public const string Share = "Share";
+    public const string ShareRevoked = "ShareRevoked";
+    public const string Delete = "Delete";
+    public const string ScanRejected = "ScanRejected";
 }

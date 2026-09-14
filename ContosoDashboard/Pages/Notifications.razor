@@ -43,6 +43,10 @@
                                     </div>
                                     <p class="mb-1">@notification.Message</p>
                                     <small class="text-muted">@GetRelativeTime(notification.CreatedDate)</small>
+                                    @if (notification.RelatedDocumentId.HasValue)
+                                    {
+                                        <div><a href="/documents/@notification.RelatedDocumentId" class="small">View document</a></div>
+                                    }
                                 </div>
                                 @if (!notification.IsRead)
                                 {

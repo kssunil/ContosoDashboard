@@ -42,11 +42,19 @@ public sealed class LocalFileStorageService : IFileStorageService
     public async Task<StoredFile> SaveAsync(string relativePath, Stream content, CancellationToken cancellationToken = default)
     {
         var fullPath = ResolvePath(relativePath);
-        Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
-        await using var output = new FileStream(fullPath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, useAsync: true);
-        await content.CopyToAsync(output, cancellationToken);
-        await output.FlushAsync(cancellationToken);
-        return new StoredFile(relativePath, output.Length);
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+            await using var output = new FileStream(fullPath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, useAsync: true);
+            await content.CopyToAsync(output, cancellationToken);
+            await output.FlushAsync(cancellationToken);
+            return new StoredFile(relativePath, output.Length);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Storage failure while saving {RelativePath}.", relativePath);
+            throw;
+        }
     }
 
     public Task<Stream?> OpenReadAsync(string relativePath, CancellationToken cancellationToken = default)
@@ -60,7 +68,15 @@ public sealed class LocalFileStorageService : IFileStorageService
     public Task DeleteAsync(string relativePath, CancellationToken cancellationToken = default)
     {
         var fullPath = ResolvePath(relativePath);
-        if (File.Exists(fullPath)) File.Delete(fullPath);
+        try
+        {
+            if (File.Exists(fullPath)) File.Delete(fullPath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Storage failure while deleting {RelativePath}.", relativePath);
+            throw;
+        }
         return Task.CompletedTask;
     }
 
@@ -73,7 +89,10 @@ public sealed class LocalFileStorageService : IFileStorageService
         var fullPath = Path.GetFullPath(Path.Combine(_rootPath, normalized));
         var rootWithSeparator = _rootPath.EndsWith(Path.DirectorySeparatorChar) ? _rootPath : _rootPath + Path.DirectorySeparatorChar;
         if (!fullPath.StartsWith(rootWithSeparator, StringComparison.OrdinalIgnoreCase))
+        {
+            _logger.LogWarning("Rejected path traversal attempt for relative path {RelativePath}.", relativePath);
             throw new InvalidOperationException("The document path is outside the configured storage root.");
+        }
         return fullPath;
     }
 }

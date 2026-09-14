@@ -29,7 +29,7 @@ The codebase must favor small, understandable components, explicit data flows, a
 ## Additional Constraints
 
 The project must remain compatible with the training goals of the ContosoDashboard sample:
-- Target runtime: ASP.NET Core 8 with Blazor Server and local EF Core storage.
+- Target runtime: ASP.NET Core 9 with Blazor Server and local EF Core storage.
 - Default data and configuration must operate offline without external services.
 - Authentication is a mock training implementation and must not be treated as production identity.
 - Security controls must be explicit and observable: authorization attributes, service checks, and user isolation rules.

@@ -53,7 +53,7 @@ This application includes a **mock authentication system** designed for training
 
 ## Overview
 
-ContosoDashboard is built using ASP.NET Core 8.0 with Blazor Server and provides a centralized platform for:
+ContosoDashboard is built using ASP.NET Core 9.0 with Blazor Server and provides a centralized platform for:
 
 - Task management and tracking
 - Project oversight and collaboration
@@ -81,7 +81,7 @@ ContosoDashboard is built using ASP.NET Core 8.0 with Blazor Server and provides
 
 ### 🔧 Technical Stack
 
-- **Framework**: ASP.NET Core 8.0
+- **Framework**: ASP.NET Core 9.0
 - **UI**: Blazor Server
 - **Database**: SQL Server LocalDB with Entity Framework Core
 - **Authentication**: Cookie-based mock authentication for training (Azure AD/Microsoft Entra ID ready)
@@ -137,7 +137,7 @@ public interface IFileStorageService
 
 ### Prerequisites
 
-- .NET 8.0 SDK or later
+- .NET 9.0 SDK or later
 - SQL Server LocalDB
 - Visual Studio 2022 or Visual Studio Code
 
@@ -389,6 +389,7 @@ This is a **training application**, not production code. Known limitations inclu
 - **CSP includes unsafe directives**: `'unsafe-inline'` and `'unsafe-eval'` required for Blazor Server but not ideal for security
 - **No email verification**: User emails are not validated
 - **No account lockout**: Failed login attempts don't trigger account locks
+- **Local-only document storage**: Uploaded documents are stored on the local filesystem under the configured `DocumentStorage:RootPath` (`appsettings.json`), not in cloud/blob storage. This is intentional for offline training and has no redundancy, encryption-at-rest, or virus scanning beyond the local `IFileSafetyScanner` checks (extension/MIME/size validation only). Production deployments should replace `IFileStorageService`'s `LocalFileStorageService` implementation with an Azure Blob Storage (or equivalent) implementation, as described in [Architecture Principles](#architecture-principles) above, before storing real user files.
 
 These limitations are **intentional** for training purposes to keep the application simple and self-contained. Production applications must address all of these security concerns.
 
