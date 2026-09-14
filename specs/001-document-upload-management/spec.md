@@ -19,7 +19,7 @@ An employee needs a simple way to add project and personal work files to the das
 
 1. **Given** the user is signed in and has access to a project or personal workspace, **When** they upload a valid PDF or Office document with a title and category, **Then** the file is validated, stored securely, and a database record is created with the upload metadata.
 2. **Given** the user uploads a file that exceeds the 25 MB limit or uses an unsupported extension, **When** the upload is submitted, **Then** the system rejects the request and shows a clear error explaining the limitation.
-3. **Given** a document is uploaded to a project, **When** the user opens the project details page, **Then** the document is visible to team members permitted to access that project and is associated with the correct project record.
+3. **Given** a project document is uploaded to a project, **When** the user opens the project details page, **Then** the document is visible to all project team members by default, while managers retain the ability to upload and delete project documents.
 
 ---
 
@@ -80,7 +80,7 @@ Managers and administrators need controlled sharing and review capabilities so d
 - **FR-011**: The system MUST expose an abstraction for file storage so local storage can be replaced with a future cloud-backed implementation without changing the core business workflow.
 - **FR-012**: Users MUST be able to view a list of documents they can access, including the document title, category, upload date, file size, and associated project.
 - **FR-013**: Users MUST be able to sort and filter documents by title, upload date, category, file size, project, and date range where supported.
-- **FR-014**: The system MUST provide a project documents view that lists all authorized project documents and makes them available to eligible team members.
+- **FR-014**: The system MUST provide a project documents view that lists all project documents visible to the current user, with all project team members able to view and download project documents by default and managers able to upload and delete project documents.
 - **FR-015**: The system MUST allow users to search documents by title, description, tags, uploader name, and associated project.
 - **FR-016**: Search results MUST be restricted to the documents a user is permitted to access.
 - **FR-017**: The system MUST support preview for common document types such as PDF and image files in the browser when permitted.
@@ -107,6 +107,7 @@ Managers and administrators need controlled sharing and review capabilities so d
 - Document access and project membership checks will be enforced in the service layer to reduce unauthorized access risk.
 - Local file storage is the default runtime behavior for the training project, while the storage abstraction allows future migration to cloud storage.
 - Virus scanning will be treated as a required validation step in the business workflow, even though the training implementation may use a local placeholder or a future integration point.
+- Project team members can view and download project documents by default, while project managers retain enhanced upload and delete permissions for project documents.
 
 ### Key Entities *(include if feature involves data)*
 
