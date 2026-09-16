@@ -29,6 +29,10 @@ public sealed class MainLayoutTests
         Assert.Equal("action-panel-navigation", control.GetAttribute("aria-controls"));
         Assert.Contains("action-panel-expanded", layout.Find(".page").ClassList);
         Assert.Contains("Dashboard", layout.Find("#action-panel-navigation").TextContent);
+        var sidebarChildren = layout.FindAll(".sidebar > *");
+        Assert.Contains("action-panel-brand-row", sidebarChildren[0].ClassList);
+        Assert.Contains("action-panel-control-row", sidebarChildren[1].ClassList);
+        Assert.Single(layout.FindAll(".action-panel-control-row > .action-panel-toggle"));
     }
 
     [Fact]

@@ -9,6 +9,17 @@
     </div>
 </div>
 
+<div class="action-panel-control-row">
+    <button type="button"
+            class="action-panel-toggle"
+            aria-label="@(IsExpanded ? "Collapse action panel" : "Expand action panel")"
+            aria-expanded="@IsExpanded.ToString().ToLowerInvariant()"
+            aria-controls="@NavigationRegionId"
+            @onclick="OnToggle">
+        <i class="bi @(IsExpanded ? "bi-chevron-bar-left" : "bi-chevron-bar-right")" aria-hidden="true"></i>
+    </button>
+</div>
+
 @if (IsExpanded)
 {
     <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
@@ -74,4 +85,7 @@
 
     [Parameter]
     public string NavigationRegionId { get; set; } = "action-panel-navigation";
+
+    [Parameter]
+    public EventCallback OnToggle { get; set; }
 }

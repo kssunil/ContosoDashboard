@@ -7,15 +7,9 @@
 
 <div class="page @(IsActionPanelExpanded ? "action-panel-expanded" : "action-panel-collapsed")">
     <div class="sidebar">
-        <button type="button"
-                class="action-panel-toggle"
-                aria-label="@(IsActionPanelExpanded ? "Collapse action panel" : "Expand action panel")"
-                aria-expanded="@IsActionPanelExpanded.ToString().ToLowerInvariant()"
-                aria-controls="action-panel-navigation"
-                @onclick="ToggleActionPanel">
-            <i class="bi @(IsActionPanelExpanded ? "bi-chevron-bar-left" : "bi-chevron-bar-right")" aria-hidden="true"></i>
-        </button>
-        <NavMenu IsExpanded="IsActionPanelExpanded" NavigationRegionId="action-panel-navigation" />
+        <NavMenu IsExpanded="IsActionPanelExpanded"
+                 NavigationRegionId="action-panel-navigation"
+                 OnToggle="ToggleActionPanel" />
     </div>
 
     <main>
