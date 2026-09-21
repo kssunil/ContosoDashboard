@@ -1,0 +1,21 @@
+Enhancement 1:
+Make the side blue panel with action links (Dashboard, My Tasks, My Projects, Documents etc) as a panel that can be collapsed and expanded back to original size by click on an icon with text or image "<>" on the top right corner. When collapsed, the panel only show the icon which can be clicked to expand back. When expanded, it will show the action links and also the icon on the top right corner of the blue panel. When collapsed, the remaining content of below the header which is of same height as the panel expands to cover the are that collapse has brought. When expanded back, the main are of the screen adjust back to original size. None of the functionality of panel links on main are controls change as part of the expand and collapse. When transitioning from on screen to other, panel aways is displayed in expanded form.
+
+Update: It did one mistake when it implemented as I couldn’t see the expand/collapse button, so gave it the below prompt to fix it. 
+
+I know why its not showing. The button seems to be in the header part where the text "ContosoDashboard" is shown and not in the blue left panel area. For that reason, its not visually shown. Can you bring the button to the blue panel area on the left. You can place it in the top right or bottom right of the blue panel area.
+
+
+
+Enhancement 2:
+Add functionality to "Add" a new project. 
+- Projects screen will have a "New Project" button to transition to the Create New Project screen. Only Program Manager and Admin should be able to see this "New Project" button.
+- New project create screen will have all fields with their labels and appropriate controls to enter the data. 
+- Project Manager will list the names of all project managers in a single-select dropdown. Project 
+- Title should be unique across app. 
+- Start Date and Target Completion can be past dates for backfilling project information for completed projects. 
+- It will have Save and Cancel buttons. Save button will save the project information to database. Cancel will cancel the operations and go back to the previous screen. 
+- There should be table for the list of project tasks in the project create screen. Use same UI template similar to Project Details screen currently there. Table header on the top right corner will have a "New Task" button which will open a modal dialog box to enter the project information. Modal dialog box should have two buttons (Ok and Cancel). When clicked Ok, the entered data is added to the table after appropriate validation. Title is required. 
+- Project create screen will also have a "Upload Documents" button to upload documents associated to the project. It should also have a table with list of selected documents. 
+- Project create screen will also have multiselect dropdown to select the list of team members. Once selected all the selected ones are shown as comma separated text below the dropdown.
+- Only Program Manager and Admin should be able to access to this New Project screen.
