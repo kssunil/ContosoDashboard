@@ -48,6 +48,7 @@ builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 builder.Services.AddScoped<IFileSafetyScanner, LocalFileSafetyScanner>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IDocumentActivityService, DocumentActivityService>();
+builder.Services.AddScoped<IProjectActivityService, ProjectActivityService>();
 builder.Services.AddScoped<IDocumentShareService, DocumentShareService>();
 
 // Add HttpContextAccessor for accessing user claims
@@ -64,6 +65,7 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<ApplicationDbContext>();
         context.Database.EnsureCreated(); // For development - use migrations in production
         DocumentSchemaInitializer.EnsureCreated(context);
+        ProjectSchemaInitializer.EnsureCreated(context);
     }
     catch (Exception ex)
     {

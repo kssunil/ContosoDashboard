@@ -53,12 +53,12 @@
                             <div class="col-md-3">
                                 <label class="text-muted small">Progress</label>
                                 <div class="progress">
-                                    <div class="progress-bar" role="progressbar" 
-                                         style="width: @project.CompletionPercentage%"
-                                         aria-valuenow="@project.CompletionPercentage" 
-                                         aria-valuemin="0" 
+                                    <div class="progress-bar" role="progressbar"
+                                         style="width: @project.Progress%"
+                                         aria-valuenow="@project.Progress"
+                                         aria-valuemin="0"
                                          aria-valuemax="100">
-                                        @project.CompletionPercentage%
+                                        @project.Progress%
                                     </div>
                                 </div>
                             </div>
@@ -115,7 +115,7 @@
                                     <tbody>
                                         @foreach (var task in project.Tasks.OrderBy(t => t.DueDate))
                                         {
-                                            <tr class="@(task.DueDate.HasValue && task.DueDate < DateTime.Today && task.Status != Models.TaskStatus.Completed ? "table-danger" : "")">">
+                                            <tr class="@(task.DueDate.HasValue && task.DueDate < DateTime.Today && task.Status != Models.TaskStatus.Completed ? "table-danger" : "")">
                                                 <td>
                                                     <strong>@task.Title</strong>
                                                     @if (!string.IsNullOrEmpty(task.Description))

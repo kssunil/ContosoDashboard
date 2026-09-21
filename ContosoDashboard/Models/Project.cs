@@ -25,6 +25,12 @@ public class Project
     [Required]
     public ProjectStatus Status { get; set; } = ProjectStatus.Planning;
 
+    [Range(0, 100)]
+    public int Progress { get; set; }
+
+    [Required]
+    public int CreatedByUserId { get; set; }
+
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
     public DateTime UpdatedDate { get; set; } = DateTime.UtcNow;
@@ -33,9 +39,13 @@ public class Project
     [ForeignKey("ProjectManagerId")]
     public virtual User ProjectManager { get; set; } = null!;
 
+    [ForeignKey(nameof(CreatedByUserId))]
+    public virtual User CreatedByUser { get; set; } = null!;
+
     public virtual ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
     public virtual ICollection<ProjectMember> ProjectMembers { get; set; } = new List<ProjectMember>();
     public virtual ICollection<Document> Documents { get; set; } = new List<Document>();
+    public virtual ICollection<ProjectActivity> Activities { get; set; } = new List<ProjectActivity>();
 
     // Computed property
     [NotMapped]
@@ -55,5 +65,6 @@ public enum ProjectStatus
     Planning,
     Active,
     OnHold,
-    Completed
+    Completed,
+    Inactive
 }

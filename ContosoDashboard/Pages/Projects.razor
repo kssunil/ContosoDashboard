@@ -14,6 +14,14 @@
         <div class="col">
             <h1>My Projects</h1>
         </div>
+        @if (canCreateProject)
+        {
+            <div class="col-auto">
+                <a class="btn btn-primary" href="/projects/create">
+                    <i class="bi bi-plus-circle"></i> New Project
+                </a>
+            </div>
+        }
     </div>
 
     @if (projects == null)
@@ -50,12 +58,12 @@
                             <div class="mb-2">
                                 <small class="text-muted">Progress:</small>
                                 <div class="progress">
-                                    <div class="progress-bar" role="progressbar" 
-                                         style="width: @project.CompletionPercentage%"
-                                         aria-valuenow="@project.CompletionPercentage" 
-                                         aria-valuemin="0" 
+                                    <div class="progress-bar" role="progressbar"
+                                         style="width: @project.Progress%"
+                                         aria-valuenow="@project.Progress"
+                                         aria-valuemin="0"
                                          aria-valuemax="100">
-                                        @project.CompletionPercentage%
+                                        @project.Progress%
                                     </div>
                                 </div>
                             </div>
@@ -92,6 +100,7 @@
 @code {
     private List<Project>? projects;
     private int currentUserId = 0;
+    private bool canCreateProject;
 
     protected override async Task OnInitializedAsync()
     {
@@ -103,6 +112,8 @@
         {
             currentUserId = userId;
         }
+
+        canCreateProject = user.IsInRole(nameof(UserRole.ProjectManager)) || user.IsInRole(nameof(UserRole.Administrator));
 
         if (currentUserId > 0)
         {

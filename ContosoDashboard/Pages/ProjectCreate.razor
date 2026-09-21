@@ -1,0 +1,432 @@
+@page "/projects/create"
+@using ContosoDashboard.Services
+@using ContosoDashboard.Models
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Security.Claims
+@attribute [Authorize(Policy = "ProjectManager")]
+@inject IProjectService ProjectService
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Create New Project - ContosoDashboard</PageTitle>
+
+<div class="container-fluid project-create-page">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/projects">My Projects</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Create New Project</li>
+                </ol>
+            </nav>
+            <h1>Create New Project</h1>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div class="alert alert-danger" role="alert">@errorMessage</div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Project Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="project-title">Title</label>
+                    <input id="project-title" class="form-control" @bind="title" maxlength="255" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" for="project-status">Status</label>
+                    <select id="project-status" class="form-select" @bind="status">
+                        <option value="@ProjectStatus.Active">Active</option>
+                        <option value="@ProjectStatus.Inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" for="project-progress">Progress (%)</label>
+                    <input id="project-progress" type="number" min="0" max="100" class="form-control" @bind="progress" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="project-description">Description</label>
+                    <textarea id="project-description" class="form-control" rows="3" @bind="description"></textarea>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="project-manager">Project Manager</label>
+                    <select id="project-manager" class="form-select" @bind="projectManagerId">
+                        <option value="">Select a project manager</option>
+                        @foreach (var manager in projectManagers)
+                        {
+                            <option value="@manager.UserId">@manager.DisplayName</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="project-start-date">Start Date</label>
+                    <input id="project-start-date" type="date" class="form-control" @bind="startDate" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="project-end-date">End Date</label>
+                    <input id="project-end-date" type="date" class="form-control" @bind="endDate" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Project Tasks</h5>
+            <button type="button" id="new-task-button" class="btn btn-sm btn-primary" @onclick="OpenTaskModal">
+                <i class="bi bi-plus-circle"></i> New Task
+            </button>
+        </div>
+        <div class="card-body">
+            @if (stagedTasks.Count == 0)
+            {
+                <p class="text-muted mb-0">No tasks added yet.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Due Date</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var task in stagedTasks)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@task.Title</strong>
+                                        @if (!string.IsNullOrEmpty(task.Description))
+                                        {
+                                            <br />
+                                            <small class="text-muted">@task.Description</small>
+                                        }
+                                    </td>
+                                    <td>@(task.Priority?.ToString() ?? "Medium (default)")</td>
+                                    <td>@(task.Status?.ToString() ?? "Not Started")</td>
+                                    <td>@(task.DueDate?.ToString("MMM dd, yyyy") ?? "No due date")</td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => RemoveTask(task)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Upload Documents</h5>
+        </div>
+        <div class="card-body">
+            <InputFile OnChange="SelectFiles" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png" />
+            <small class="form-text text-muted d-block mb-3">PDF, Office, text, JPEG, and PNG files up to 25 MB each. Files are not uploaded until you Save.</small>
+
+            @if (stagedFiles.Count == 0)
+            {
+                <p class="text-muted mb-0">No documents selected.</p>
+            }
+            else
+            {
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>File Name</th>
+                            <th>Size</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var file in stagedFiles)
+                        {
+                            <tr>
+                                <td>@file.Name</td>
+                                <td>@($"{file.Size / 1024.0:N0} KB")</td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => RemoveFile(file)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Team Members</h5>
+        </div>
+        <div class="card-body">
+            <select class="form-select" multiple size="6" @bind="selectedTeamMemberUserIds">
+                @foreach (var user in allUsers)
+                {
+                    <option value="@user.UserId">@user.DisplayName</option>
+                }
+            </select>
+            <div class="form-text">
+                Selected: @(selectedTeamMemberUserIds.Length == 0 ? "None" : string.Join(", ", allUsers.Where(u => selectedTeamMemberUserIds.Contains(u.UserId)).Select(u => u.DisplayName)))
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <button type="button" id="save-project-button" class="btn btn-primary" @onclick="Save" disabled="@isSaving">
+            @(isSaving ? "Saving..." : "Save")
+        </button>
+        <button type="button" id="cancel-project-button" class="btn btn-outline-secondary ms-2" @onclick="Cancel">Cancel</button>
+    </div>
+</div>
+
+@if (showTaskModal)
+{
+    <div class="modal fade show" style="display: block;" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">New Task</h5>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrWhiteSpace(taskModalError))
+                    {
+                        <div class="alert alert-danger" role="alert">@taskModalError</div>
+                    }
+                    <div class="mb-3">
+                        <label class="form-label" for="task-title">Title</label>
+                        <input id="task-title" class="form-control" @bind="taskModalTitle" maxlength="255" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="task-description">Description</label>
+                        <textarea id="task-description" class="form-control" rows="2" @bind="taskModalDescription"></textarea>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="task-priority">Priority</label>
+                            <select id="task-priority" class="form-select" @bind="taskModalPriority">
+                                <option value="">Medium (default)</option>
+                                <option value="@TaskPriority.Low">Low</option>
+                                <option value="@TaskPriority.Medium">Medium</option>
+                                <option value="@TaskPriority.High">High</option>
+                                <option value="@TaskPriority.Critical">Critical</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="task-due-date">Due Date</label>
+                            <input id="task-due-date" type="date" class="form-control" @bind="taskModalDueDate" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="task-assignee">Assignee</label>
+                            <select id="task-assignee" class="form-select" @bind="taskModalAssignedUserId">
+                                <option value="">You (default)</option>
+                                @foreach (var user in allUsers)
+                                {
+                                    <option value="@user.UserId">@user.DisplayName</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="task-modal-cancel-button" class="btn btn-secondary" @onclick="CloseTaskModal">Cancel</button>
+                    <button type="button" id="task-modal-ok-button" class="btn btn-primary" @onclick="ConfirmTask">Ok</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    private sealed class StagedTask
+    {
+        public string Title { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public TaskPriority? Priority { get; set; }
+        public Models.TaskStatus? Status { get; set; }
+        public DateTime? DueDate { get; set; }
+        public int? AssignedUserId { get; set; }
+    }
+
+    private int currentUserId;
+    private List<User> projectManagers = new();
+    private List<User> allUsers = new();
+
+    private string title = string.Empty;
+    private string description = string.Empty;
+    private ProjectStatus status = ProjectStatus.Active;
+    private int? progress;
+    private string projectManagerId = string.Empty;
+    private DateTime startDate = DateTime.Today;
+    private DateTime endDate = DateTime.Today.AddDays(30);
+
+    private readonly List<StagedTask> stagedTasks = new();
+    private readonly List<IBrowserFile> stagedFiles = new();
+    private int[] selectedTeamMemberUserIds = Array.Empty<int>();
+
+    private bool showTaskModal;
+    private string taskModalTitle = string.Empty;
+    private string? taskModalDescription;
+    private string taskModalPriority = string.Empty;
+    private DateTime? taskModalDueDate;
+    private string taskModalAssignedUserId = string.Empty;
+    private string? taskModalError;
+
+    private string? errorMessage;
+    private bool isSaving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (int.TryParse(authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId))
+        {
+            currentUserId = userId;
+        }
+
+        allUsers = await UserService.GetAllUsersAsync();
+        projectManagers = allUsers.Where(u => u.Role == UserRole.ProjectManager).ToList();
+        if (projectManagers.Any(u => u.UserId == currentUserId))
+        {
+            projectManagerId = currentUserId.ToString();
+        }
+    }
+
+    private void OpenTaskModal()
+    {
+        taskModalTitle = string.Empty;
+        taskModalDescription = null;
+        taskModalPriority = string.Empty;
+        taskModalDueDate = null;
+        taskModalAssignedUserId = string.Empty;
+        taskModalError = null;
+        showTaskModal = true;
+    }
+
+    private void CloseTaskModal()
+    {
+        showTaskModal = false;
+    }
+
+    private void ConfirmTask()
+    {
+        if (string.IsNullOrWhiteSpace(taskModalTitle))
+        {
+            taskModalError = "Title is required.";
+            return;
+        }
+
+        stagedTasks.Add(new StagedTask
+        {
+            Title = taskModalTitle.Trim(),
+            Description = string.IsNullOrWhiteSpace(taskModalDescription) ? null : taskModalDescription.Trim(),
+            Priority = string.IsNullOrEmpty(taskModalPriority) ? null : Enum.Parse<TaskPriority>(taskModalPriority),
+            DueDate = taskModalDueDate,
+            AssignedUserId = string.IsNullOrEmpty(taskModalAssignedUserId) ? null : int.Parse(taskModalAssignedUserId)
+        });
+
+        showTaskModal = false;
+    }
+
+    private void RemoveTask(StagedTask task) => stagedTasks.Remove(task);
+
+    private void SelectFiles(InputFileChangeEventArgs args)
+    {
+        stagedFiles.AddRange(args.GetMultipleFiles(20));
+    }
+
+    private void RemoveFile(IBrowserFile file) => stagedFiles.Remove(file);
+
+    private async Task Save()
+    {
+        errorMessage = null;
+
+        if (!int.TryParse(projectManagerId, out var selectedProjectManagerId))
+        {
+            errorMessage = "Select a valid project manager.";
+            return;
+        }
+
+        isSaving = true;
+        var streams = new List<Stream>();
+        try
+        {
+            const long maxFileSize = 25 * 1024 * 1024;
+            var documentRequests = new List<CreateProjectDocumentRequest>();
+            foreach (var file in stagedFiles)
+            {
+                var stream = file.OpenReadStream(maxFileSize);
+                streams.Add(stream);
+                documentRequests.Add(new CreateProjectDocumentRequest
+                {
+                    Content = stream,
+                    FileName = file.Name,
+                    ContentType = file.ContentType,
+                    Length = file.Size
+                });
+            }
+
+            var request = new CreateProjectRequest
+            {
+                Title = title,
+                Description = description,
+                Status = status,
+                Progress = progress,
+                ProjectManagerId = selectedProjectManagerId,
+                StartDate = startDate,
+                EndDate = endDate,
+                Tasks = stagedTasks.Select(t => new CreateProjectTaskRequest
+                {
+                    Title = t.Title,
+                    Description = t.Description,
+                    Priority = t.Priority,
+                    Status = t.Status,
+                    DueDate = t.DueDate,
+                    AssignedUserId = t.AssignedUserId
+                }).ToList(),
+                Documents = documentRequests,
+                TeamMemberUserIds = selectedTeamMemberUserIds.ToList()
+            };
+
+            var result = await ProjectService.CreateProjectAsync(request, currentUserId);
+            if (result.Succeeded)
+            {
+                NavigationManager.NavigateTo("/projects");
+            }
+            else
+            {
+                errorMessage = result.ErrorMessage;
+            }
+        }
+        finally
+        {
+            foreach (var stream in streams)
+            {
+                await stream.DisposeAsync();
+            }
+            isSaving = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/projects");
+    }
+}

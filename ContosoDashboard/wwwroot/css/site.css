@@ -173,6 +173,23 @@ main {
     margin-bottom: 0;
 }
 
+.project-create-page .card {
+    border-top: 3px solid #0078d4;
+}
+
+.project-create-page .form-label {
+    font-weight: 600;
+}
+
+.project-create-page .table td,
+.project-create-page .table th {
+    vertical-align: middle;
+}
+
+.project-create-page .modal-dialog {
+    z-index: 1056;
+}
+
 @media (min-width: 641px) {
     .page {
         flex-direction: row;

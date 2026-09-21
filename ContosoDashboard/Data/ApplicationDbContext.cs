@@ -22,6 +22,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<DocumentShare> DocumentShares { get; set; } = null!;
     public DbSet<DocumentVersion> DocumentVersions { get; set; } = null!;
     public DbSet<DocumentActivity> DocumentActivities { get; set; } = null!;
+    public DbSet<ProjectActivity> ProjectActivities { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -46,6 +47,24 @@ public class ApplicationDbContext : DbContext
             .HasForeignKey(p => p.ProjectManagerId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        modelBuilder.Entity<Project>()
+            .HasOne(p => p.CreatedByUser)
+            .WithMany()
+            .HasForeignKey(p => p.CreatedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ProjectActivity>()
+            .HasOne(a => a.Project)
+            .WithMany(p => p.Activities)
+            .HasForeignKey(a => a.ProjectId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ProjectActivity>()
+            .HasOne(a => a.ActorUser)
+            .WithMany()
+            .HasForeignKey(a => a.ActorUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // Configure indexes for performance
         modelBuilder.Entity<TaskItem>()
             .HasIndex(t => t.AssignedUserId);
@@ -61,6 +80,10 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<Project>()
             .HasIndex(p => p.Status);
+
+        modelBuilder.Entity<Project>()
+            .HasIndex(p => p.Name)
+            .IsUnique();
 
         modelBuilder.Entity<Notification>()
             .HasIndex(n => new { n.UserId, n.IsRead });
@@ -209,6 +232,8 @@ public class ApplicationDbContext : DbContext
                 StartDate = DateTime.UtcNow.AddDays(-30),
                 TargetCompletionDate = DateTime.UtcNow.AddDays(60),
                 Status = ProjectStatus.Active,
+                Progress = 0,
+                CreatedByUserId = 2,
                 CreatedDate = DateTime.UtcNow.AddDays(-30),
                 UpdatedDate = DateTime.UtcNow
             }
